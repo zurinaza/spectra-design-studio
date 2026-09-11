@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SPECTRA Design Studio: a guided, simulation-supported unit operation design workspace for ECH3127 students." />
+  <title>SPECTRA Design Studio · ECH3127</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section class="entrance" id="entrance">
+    <nav class="entrance-nav" aria-label="Entrance navigation">
+      <div class="upm-lockup">
+        <img src="assets/upm-logo.png" alt="Universiti Putra Malaysia" />
+        <div><strong>FACULTY OF ENGINEERING</strong><span>Department of Chemical and Environmental Engineering</span></div>
+      </div>
+      <div class="entrance-links">
+        <button data-scroll="aboutModule">About module</button>
+        <button id="entranceResources">References</button>
+      </div>
+    </nav>
+    <div class="entrance-hero">
+      <div class="hero-copy">
+        <div class="course-pill">ECH3127 · PHYSICAL SEPARATION PROCESS</div>
+        <p class="hero-overline">GUIDED UNIT OPERATION DESIGN</p>
+        <h1><span>SPECTRA</span><br>DESIGN STUDIO</h1>
+        <p class="hero-lead">Move from a process brief to a defensible preliminary design—one engineering decision at a time.</p>
+        <div class="hero-actions">
+          <button class="primary hero-primary" id="enterModule">Start design project <span>→</span></button>
+          <button class="ghost hero-secondary" data-scroll="aboutModule">See the pathway</button>
+        </div>
+        <div class="developer-line"><span>Developed by</span><strong>Prof. Dr. Zurina Zainal Abidin</strong></div>
+      </div>
+      <div class="hero-visual" aria-label="Chemical engineering separation equipment design illustration">
+        <img src="assets/separation-design-hero.webp" alt="A chemical engineering design workstation surrounded by separation process equipment" />
+        <span class="visual-tag tag-one">Mass & energy balance</span>
+        <span class="visual-tag tag-two">Equipment sizing</span>
+        <span class="visual-tag tag-three">Design decisions</span>
+      </div>
+    </div>
+    <div class="entrance-overview" id="aboutModule">
+      <div><span>01</span><strong>Select an equipment route</strong><p>Compare equipment types and operating modes for six physical separation processes.</p></div>
+      <div><span>02</span><strong>Work through SPECTRA</strong><p>Scope, Pick, Establish, Calculate, Test, Review, then Argue and archive.</p></div>
+      <div><span>03</span><strong>Simulate and defend</strong><p>Use readiness gates, economics and process diagrams to justify the final design.</p></div>
+    </div>
+    <footer class="entrance-footer">© 2026 Prof. Dr. Zurina Zainal Abidin · Universiti Putra Malaysia</footer>
+  </section>
+
+  <div id="moduleApp" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">SP</div>
+      <div>
+        <strong>SPECTRA Design Studio</strong>
+        <span>ECH3127 · Physical Separation Process</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="ghost" id="homeBtn">← Entrance</button>
+      <button class="ghost" id="resourcesBtn">Reference shelf</button>
+      <button class="ghost" id="resetBtn">Reset project</button>
+      <button class="primary small" id="portfolioBtn">View portfolio</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="SPECTRA pathway">
+      <div class="pathway-intro">
+        <div class="eyebrow">YOUR PATHWAY</div>
+        <h1>SPECTRA</h1>
+        <p>From brief to a defensible preliminary design.</p>
+      </div>
+      <nav id="phaseNav"></nav>
+      <div class="progress-panel">
+        <div class="progress-copy"><span>Project progress</span><strong id="progressText">0%</strong></div>
+        <div class="progress-track"><div id="progressBar"></div></div>
+        <p id="progressHint">Complete the design brief to begin.</p>
+      </div>
+      <div class="signature-card">Learning design by<br><strong>Prof. Dr. Zurina Zainal Abidin</strong><span>Universiti Putra Malaysia</span></div>
+    </aside>
+
+    <main class="workspace" id="workspace" tabindex="-1"></main>
+
+    <aside class="notebook" aria-label="Design notebook">
+      <div class="notebook-head">
+        <div>
+          <div class="eyebrow">LIVE RECORD</div>
+          <h2>Design notebook</h2>
+        </div>
+        <span class="autosave"><i></i> Saved locally</span>
+      </div>
+      <div id="notebookContent"></div>
+    </aside>
+  </div>
+  </div>
+
+  <dialog id="resourcesDialog">
+    <div class="dialog-head">
+      <div>
+        <div class="eyebrow">TECHNICAL FOUNDATION</div>
+        <h2>Reference shelf</h2>
+      </div>
+      <button class="icon-btn" data-close="resourcesDialog" aria-label="Close">×</button>
+    </div>
+    <p class="dialog-lead">The studio presents original explanations, examples and activities. These sources provide the technical basis and deeper reading.</p>
+    <div class="resource-list">
+      <article><span>PRIMARY REFERENCE</span><h3>Sinnott & Towler, 2019</h3><p><em>Chemical Engineering Design: SI Edition</em>, 6th ed., Coulson and Richardson’s Chemical Engineering, Vol. 6. Elsevier. ISBN 978-0-08-102599-4.</p><a href="https://www.educate.elsevier.com/" target="_blank" rel="noreferrer">Publisher access ↗</a></article>
+      <article><span>VISUAL LEARNING</span><h3>LearnChemE</h3><p>Interactive simulations for distillation, absorption, extraction, evaporation, membranes and phase equilibrium.</p><a href="https://learncheme.com/simulations/separations/" target="_blank" rel="noreferrer">Explore simulations ↗</a></article>
+      <article><span>PROPERTY DATA</span><h3>NIST Chemistry WebBook</h3><p>Thermophysical properties for selected pure fluids. Always record the property, conditions, units and source.</p><a href="https://webbook.nist.gov/chemistry/fluid/" target="_blank" rel="noreferrer">Find fluid data ↗</a></article>
+      <article><span>SUPPORTING COURSE</span><h3>NPTEL Process Equipment Design</h3><p>Selected lectures on equipment design. Use the topics assigned by your lecturer.</p><a href="https://onlinecourses.nptel.ac.in/noc24_ch25/preview" target="_blank" rel="noreferrer">Open course overview ↗</a></article>
+    </div>
+    <p class="copyright-note">Do not copy design tables or figures without permission. Cite the edition and the specific chapter or section you used.</p>
+  </dialog>
+
+  <dialog id="portfolioDialog" class="portfolio-dialog">
+    <div class="dialog-head">
+      <div><div class="eyebrow">CUMULATIVE OUTPUT</div><h2>My SPECTRA design portfolio</h2></div>
+      <button class="icon-btn" data-close="portfolioDialog" aria-label="Close">×</button>
+    </div>
+    <div id="portfolioContent"></div>
+    <div class="dialog-actions">
+      <button class="ghost" id="downloadBtn">Download project data</button>
+      <button class="primary" id="printBtn">Print / save as PDF</button>
+    </div>
+  </dialog>
+
+  <dialog id="dataDialog" class="data-dialog">
+    <div class="dialog-head">
+      <div><div class="eyebrow">DESIGN EVIDENCE</div><h2 id="dataDialogTitle">Add a data item</h2></div>
+      <button class="icon-btn" data-close="dataDialog" aria-label="Close">×</button>
+    </div>
+    <form id="dataForm">
+      <input type="hidden" id="dataIndex" value="-1" />
+      <div class="field-grid data-form-grid">
+        <div class="field full"><label for="dataName">Data, equation or method</label><input id="dataName" required placeholder="e.g. latent heat of water" /></div>
+        <div class="field"><label for="dataValue">Value or method name</label><input id="dataValue" required placeholder="e.g. 2257" /></div>
+        <div class="field"><label for="dataUnit">Unit</label><input id="dataUnit" placeholder="e.g. kJ/kg" /></div>
+        <div class="field full"><label for="dataConditions">Conditions and system</label><input id="dataConditions" required placeholder="e.g. water at 100°C and 1 atm" /></div>
+        <div class="field"><label for="dataSourceType">Source category</label><select id="dataSourceType"><option>Validated database</option><option>Peer-reviewed journal</option><option>Textbook or handbook</option><option>Engineering standard</option><option>Industrial or vendor datasheet</option><option>Project brief</option><option>Experimental data</option><option>Engineering assumption</option></select></div>
+        <div class="field"><label for="dataStatus">Evidence status</label><select id="dataStatus"><option>Verified</option><option>Provisional</option><option>Assumed</option></select></div>
+        <div class="field full"><label for="dataReference">Traceable reference</label><textarea id="dataReference" required placeholder="Author/organisation, year, title, journal or document, DOI/URL"></textarea></div>
+        <div class="field full"><label for="dataApplicability">Why is it applicable?</label><textarea id="dataApplicability" required placeholder="Explain why the system, conditions and range fit this design."></textarea></div>
+      </div>
+      <div id="dataFormFeedback" class="form-feedback" role="status"></div>
+      <div class="dialog-actions"><button type="button" class="ghost" data-close="dataDialog">Cancel</button><button type="submit" class="primary">Save data item</button></div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
