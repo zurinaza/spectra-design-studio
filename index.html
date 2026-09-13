@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
   <section class="entrance" id="entrance">
@@ -42,9 +42,9 @@
       </div>
     </div>
     <div class="entrance-overview" id="aboutModule">
-      <div><span>01</span><strong>Select an equipment route</strong><p>Compare equipment types and operating modes for six physical separation processes.</p></div>
-      <div><span>02</span><strong>Work through SPECTRA</strong><p>Scope, Pick, Establish, Calculate, Test, Review, then Argue and archive.</p></div>
-      <div><span>03</span><strong>Simulate and defend</strong><p>Use readiness gates, economics and process diagrams to justify the final design.</p></div>
+      <div><span>01</span><strong>Build the process flow first</strong><p>Order separation units, pumps and heat exchangers, then label and validate every material stream.</p></div>
+      <div><span>02</span><strong>Enter data after validation</strong><p>Complete the generated stream table, evidence register and degree-of-freedom check before balancing.</p></div>
+      <div><span>03</span><strong>Calculate, simulate and defend</strong><p>Close balances, size the target unit, test feasibility and evaluate ROI, payback and NPV.</p></div>
     </div>
     <footer class="entrance-footer">© 2026 Prof. Dr. Zurina Zainal Abidin · Universiti Putra Malaysia</footer>
   </section>
@@ -135,20 +135,24 @@
     <form id="dataForm">
       <input type="hidden" id="dataIndex" value="-1" />
       <div class="field-grid data-form-grid">
+        <div class="field full evidence-method-field"><span class="group-label">How would you like to provide the information?</span><div class="evidence-methods"><label><input type="radio" name="evidenceMethod" value="text" checked><span><strong>Type or paste</strong><small>Enter data, an equation or a method</small></span></label><label><input type="radio" name="evidenceMethod" value="url"><span><strong>URL or DOI</strong><small>Link a journal, database or vendor page</small></span></label><label><input type="radio" name="evidenceMethod" value="file"><span><strong>Attach a file</strong><small>PDF, image, document or spreadsheet</small></span></label></div></div>
+        <div class="field full"><label for="dataCategory">Evidence category</label><select id="dataCategory"><option value="brief">Feed and product requirements</option><option value="properties">Physical and thermodynamic properties</option><option value="methods">Design methods and correlations</option><option value="equilibrium">Equilibrium and kinetic data</option><option value="limits">Equipment operating limits</option><option value="costs">Cost and utility data</option><option value="assumptions">Missing information and assumptions</option><option value="other">Other design evidence</option></select></div>
         <div class="field full"><label for="dataName">Data, equation or method</label><input id="dataName" required placeholder="e.g. latent heat of water" /></div>
-        <div class="field"><label for="dataValue">Value or method name</label><input id="dataValue" required placeholder="e.g. 2257" /></div>
+        <div class="field full evidence-panel" data-evidence-panel="url" hidden><label for="dataUrl">URL or DOI link</label><input id="dataUrl" type="url" placeholder="https://doi.org/... or https://..." /><span class="help">The link is recorded; paste the relevant information below when available.</span></div>
+        <div class="field full evidence-panel" data-evidence-panel="file" hidden><label for="dataFile">Select a file</label><input id="dataFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.csv,.txt" /><span class="help" id="dataAttachmentNote">Files up to 1 MB are stored inside this local project. For larger files, use a shared URL.</span></div>
+        <div class="field full"><label for="dataValue">Information, value, equation or method</label><textarea id="dataValue" placeholder="Paste the relevant information, equation or extracted value. You may complete or verify it later."></textarea></div>
         <div class="field"><label for="dataUnit">Unit</label><input id="dataUnit" placeholder="e.g. kJ/kg" /></div>
-        <div class="field full"><label for="dataConditions">Conditions and system</label><input id="dataConditions" required placeholder="e.g. water at 100°C and 1 atm" /></div>
+        <div class="field"><label for="dataConditions">Conditions and system</label><input id="dataConditions" placeholder="e.g. water at 100°C and 1 atm" /></div>
         <div class="field"><label for="dataSourceType">Source category</label><select id="dataSourceType"><option>Validated database</option><option>Peer-reviewed journal</option><option>Textbook or handbook</option><option>Engineering standard</option><option>Industrial or vendor datasheet</option><option>Project brief</option><option>Experimental data</option><option>Engineering assumption</option></select></div>
         <div class="field"><label for="dataStatus">Evidence status</label><select id="dataStatus"><option>Verified</option><option>Provisional</option><option>Assumed</option></select></div>
-        <div class="field full"><label for="dataReference">Traceable reference</label><textarea id="dataReference" required placeholder="Author/organisation, year, title, journal or document, DOI/URL"></textarea></div>
-        <div class="field full"><label for="dataApplicability">Why is it applicable?</label><textarea id="dataApplicability" required placeholder="Explain why the system, conditions and range fit this design."></textarea></div>
+        <div class="field full"><label for="dataReference">Traceable reference</label><textarea id="dataReference" placeholder="Author/organisation, year, title, journal or document, DOI/URL"></textarea></div>
+        <div class="field full"><label for="dataApplicability">Why is it applicable?</label><textarea id="dataApplicability" placeholder="Explain why the system, conditions and range fit this design. Incomplete information will be flagged for later."></textarea></div>
       </div>
       <div id="dataFormFeedback" class="form-feedback" role="status"></div>
       <div class="dialog-actions"><button type="button" class="ghost" data-close="dataDialog">Cancel</button><button type="submit" class="primary">Save data item</button></div>
     </form>
   </dialog>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
