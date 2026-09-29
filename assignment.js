@@ -175,7 +175,11 @@ const CASE_PRESETS = [
   { op: 'evaporation', re: /tomato/i, name: 'Tomato paste', k: 'Total solids', fd: 'Tomato juice', z: [0.05, 0.07, 0.002], x: 0.28, y: 0 },
   { op: 'evaporation', re: /soup|mushroom/i, name: 'Condensed mushroom soup', k: 'Total solids', fd: 'Mushroom soup base', z: [0.08, 0.12, 0.005], x: 0.24, y: 0 }
 ];
-const presetFor = (op, name) => CASE_PRESETS.find(p => p.op === op && p.re.test(name || '')) || null;
+const presetFor = (op, name) => {
+  const n = String(name || '').toLowerCase().trim(); if (!n) return null;
+  const list = CASE_PRESETS.filter(p => p.op === op);
+  return list.find(p => p.re.test(n)) || (n.length >= 4 ? list.find(p => p.name.toLowerCase().startsWith(n) || p.name.toLowerCase().split(/\s+/).includes(n.split(/\s+/)[0])) : null) || null;
+};
 let lectMulti = null;
 function expandGroups(s) { const out = new Set(); s.split(/\s*(?:,|&|\band\b)\s*/).forEach(part => { const m = part.match(/(\d{1,2})\s*(?:[-–]|to)\s*(\d{1,2})/); if (m) { for (let i = Number(m[1]); i <= Number(m[2]); i++) out.add(i); } else if (/^\d{1,2}$/.test(part.trim())) out.add(Number(part)); }); return [...out]; }
 function parseGroups(raw) {
@@ -234,7 +238,7 @@ function parseGroups(raw) {
     sg.override = {}; if (sg.nums.length < 2) return; if (ini) sg.override.z = [Number(ini[1]) / 100, Number(ini[2]) / 100]; if (fin) sg.override.x = Number(fin[1]) / 100;
   });
   const list = [...groups.values()].filter(g => g.op).sort((a, b) => a.n - b.n);
-  list.forEach(g => { g.members = [...new Set(g.members)].slice(0, 8); });
+  list.forEach(g => { g.members = [...new Set(g.members)].slice(0, 8); const p = presetFor(g.op, g.caseName); if (p && !p.re.test(g.caseName)) g.caseName = p.name; });
   return list.length >= 2 ? { groups: list, segs } : null;
 }
 function caseSpec(g) {
