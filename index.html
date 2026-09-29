@@ -135,13 +135,15 @@
     <form id="dataForm">
       <input type="hidden" id="dataIndex" value="-1" />
       <div class="field-grid data-form-grid">
+        <div class="field full"><label for="dataChecklist">Checklist item</label><select id="dataChecklist"></select><span class="help">Linking ticks the item off in the data checklist.</span></div>
         <div class="field full"><label for="dataName">Data, equation or method</label><input id="dataName" required placeholder="e.g. latent heat of water" /></div>
         <div class="field"><label for="dataValue">Value or method name</label><input id="dataValue" required placeholder="e.g. 2257" /></div>
         <div class="field"><label for="dataUnit">Unit</label><input id="dataUnit" placeholder="e.g. kJ/kg" /></div>
         <div class="field full"><label for="dataConditions">Conditions and system</label><input id="dataConditions" required placeholder="e.g. water at 100°C and 1 atm" /></div>
         <div class="field"><label for="dataSourceType">Source category</label><select id="dataSourceType"><option>Validated database</option><option>Peer-reviewed journal</option><option>Textbook or handbook</option><option>Engineering standard</option><option>Industrial or vendor datasheet</option><option>Project brief</option><option>Experimental data</option><option>Engineering assumption</option></select></div>
         <div class="field"><label for="dataStatus">Evidence status</label><select id="dataStatus"><option>Verified</option><option>Provisional</option><option>Assumed</option></select></div>
-        <div class="field full"><label for="dataReference">Traceable reference</label><textarea id="dataReference" required placeholder="Author/organisation, year, title, journal or document, DOI/URL"></textarea></div>
+        <div class="field full"><label for="dataRefPick">Reference library</label><select id="dataRefPick"></select></div>
+        <div class="field full"><label for="dataReference">Traceable reference</label><textarea id="dataReference" required placeholder="Author/organisation, year, title, journal or document, DOI/URL"></textarea><label class="inline-check"><input type="checkbox" id="dataRefSave"> Save this reference to my library</label></div>
         <div class="field full"><label for="dataApplicability">Why is it applicable?</label><textarea id="dataApplicability" required placeholder="Explain why the system, conditions and range fit this design."></textarea></div>
       </div>
       <div id="dataFormFeedback" class="form-feedback" role="status"></div>
@@ -149,6 +151,33 @@
     </form>
   </dialog>
 
+  <dialog id="importDialog" class="import-dialog">
+    <div class="dialog-head">
+      <div><div class="eyebrow">DESIGN EVIDENCE</div><h2>Import data from Excel</h2></div>
+      <button class="icon-btn" data-close="importDialog" aria-label="Close">×</button>
+    </div>
+    <div class="import-body">
+      <div class="import-steps">
+        <section class="import-step"><span class="step-no">1</span><div><strong>Download the template</strong><p>It already lists the data your <span id="importOpName">selected</span> design needs. Fill in the values, conditions and references in Excel.</p><div class="import-buttons"><button class="primary small" id="tplXlsx">Excel template (.xlsx)</button><button class="ghost" id="tplCsv">CSV template</button></div></div></section>
+        <section class="import-step"><span class="step-no">2</span><div><strong>Upload the completed file</strong><p>Excel (.xlsx) or CSV. Rows without a value are skipped.</p><label class="drop-zone" id="importDrop"><input type="file" id="importFile" accept=".xlsx,.xls,.csv,.txt"><span>Drop the file here or <u>choose a file</u></span></label></div></section>
+        <section class="import-step"><span class="step-no">or</span><div><strong>Paste rows copied from Excel</strong><p>Copy the rows (with or without the header row) and paste them here.</p><textarea id="importPaste" rows="4" placeholder="Paste rows from Excel here"></textarea><button class="ghost" id="importPasteBtn">Read pasted rows</button></div></section>
+      </div>
+      <p class="status-note" id="importStatus" role="status"></p>
+      <div id="importPreview"></div>
+      <p class="formula-note">Imported items arrive as <strong>Provisional</strong>. Open each one, check it against the source and save it to confirm; only then does it count as verified evidence.</p>
+    </div>
+  </dialog>
+
+  <dialog id="libraryDialog" class="data-dialog">
+    <div class="dialog-head">
+      <div><div class="eyebrow">DESIGN EVIDENCE</div><h2>Reference library</h2></div>
+      <button class="icon-btn" data-close="libraryDialog" aria-label="Close">×</button>
+    </div>
+    <p class="dialog-lead">Enter each source once, then pick it from a list when you add data.</p>
+    <div id="libraryContent" class="library-body"></div>
+  </dialog>
+
+  <script src="data-tools.js"></script>
   <script src="pfd.js"></script>
   <script src="app.js"></script>
 </body>
