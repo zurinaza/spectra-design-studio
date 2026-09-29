@@ -88,11 +88,14 @@ const PFD_TEMPLATES = {
       { id: 'stc', from: 'unit', to: 'steamOut', fp: 'bottom@-0.5', tp: 'right', cls: 'utility', desc: 'Steam condensate' }
     ],
     env(c) {
-      const b = balance(), e = energy(), sv = currentSimValues(), vac = c.cfg === 'Vacuum';
-      const Top = vac ? Number(sv.operatingTemp) : 100, Pev = vac ? water.psat(Top) : 101.325;
-      const dt = Number(state.sizing?.values?.dt ?? 28), Ts = Top + dt, lamS = water.latent(Ts);
-      const steam = e?.total ? e.total * 3600 / lamS : undefined;
-      return { b: b?.valid ? b : null, Top, Pev, Ts, Ps: water.psat(Ts), steam, lamS, Tfeed: Top - Number(state.dTfeed || 0), cw: b?.valid ? b.R * water.latent(Top) / (4.18 * 10) : undefined };
+      const b = balance(), e = energy(), sv = currentSimValues(), vac = c.cfg === 'Vacuum', bpr = evapBPR() || 0;
+      const multi = state.mode === 'Multiple effect' ? multiEffect(sv) : null, mOK = multi && !multi.error;
+      let Top, Tv;
+      if (mOK) { Top = multi.T[multi.N - 1]; Tv = multi.Tv[multi.N - 1]; } else if (vac) { Top = Number(sv.operatingTemp); Tv = Top - bpr; } else { Tv = 100; Top = 100 + bpr; }
+      const Pev = water.psat(Tv), dt = Number(state.sizing?.values?.dt ?? 28), Ts = mOK ? multi.Ts : Top + dt, lamS = water.latent(Ts);
+      const steam = mOK ? multi.S : (e?.total ? e.total * 3600 / lamS : undefined), mb = massBalance();
+      const Vlast = mOK ? multi.V[multi.N - 1] : mb?.R;
+      return { b: b?.valid ? b : null, Top, Tv, bpr, Pev, Ts, Ps: water.psat(Ts), steam, lamS, multi: mOK ? multi : null, Tfeed: Number(sv.operatingTemp) - Number(state.dTfeed || 0), cw: Number.isFinite(Vlast) ? Vlast * water.latent(Tv) / (4.18 * 10) : undefined };
     },
     calc(s, v) {
       const b = v.b, F = b ? state.F : undefined;
@@ -100,20 +103,21 @@ const PFD_TEMPLATES = {
       if (id === 'f') return s.from === 'feed' ? { ph: 'L', T: v.Tfeed, P: 101.3, m: F, w: state.z } : s.from === 'pump' ? { ph: 'L', T: v.Tfeed, m: F, w: state.z } : { ph: 'L', m: F, w: state.z };
       if (id === 'mix') return { ph: 'V/L', T: v.Top, P: v.Pev, m: F, w: state.z };
       if (id === 'vap') return { ph: 'V', T: v.Top, P: v.Pev, m: b?.R, w: 0 };
-      if (id === 'c') return s.from === 'cpump' ? { ph: 'L', T: v.Top, m: b?.R, w: 0 } : { ph: 'L', T: v.Top, P: v.Pev, m: b?.R, w: 0 };
+      if (id === 'c') return s.from === 'cpump' ? { ph: 'L', T: v.Tv, m: b?.R, w: 0 } : { ph: 'L', T: v.Tv, P: v.Pev, m: b?.R, w: 0 };
       if (id === 'nc') return { ph: 'V', P: v.Pev };
       if (id === 'vent') return { ph: 'V', P: 101.3 };
       if (id === 'p') return s.from === 'ppump' ? { ph: 'L', T: v.Top, m: b?.P, w: state.x } : { ph: 'L', T: v.Top, P: v.Pev, m: b?.P, w: state.x };
       if (id === 'circ1' || id === 'circ2') return { ph: 'L', T: v.Top, w: state.x };
-      if (id === 'stm') return { ph: 'V', T: v.Ts, P: v.Ps, m: v.steam, w: 0 };
-      if (id === 'stc') return { ph: 'L', T: v.Ts, P: v.Ps, m: v.steam, w: 0 };
-      if (id === 'cwi') return { ph: 'L', T: 30, m: v.cw, w: 0 };
-      if (id === 'cwo') return { ph: 'L', T: 40, m: v.cw, w: 0 };
+      if (id === 'stm') return { ph: 'V', T: v.Ts, P: v.Ps, m: v.steam, w: 0, util: true };
+      if (id === 'stc') return { ph: 'L', T: v.Ts, P: v.Ps, m: v.steam, w: 0, util: true };
+      if (id === 'cwi') return { ph: 'L', T: 30, m: v.cw, w: 0, util: true };
+      if (id === 'cwo') return { ph: 'L', T: 40, m: v.cw, w: 0, util: true };
       if (id === 'motive') return { ph: 'V' };
       return {};
     },
     notes: v => [
-      `Evaporator pressure is the saturation pressure of water at the operating temperature (${v.Top.toFixed(0)} °C → ${v.Pev.toFixed(1)} kPa abs, Antoine equation). Boiling-point rise is neglected; add it for concentrated solutions.`,
+      `The liquor boils at ${v.Top.toFixed(1)} °C; with a boiling-point rise of ${v.bpr.toFixed(2)} K the vapour is saturated at ${v.Tv.toFixed(1)} °C, so the evaporator runs at ${v.Pev.toFixed(1)} kPa abs (Antoine equation). The vapour leaves slightly superheated.`,
+      ...(v.multi ? [`Multiple-effect mode: the PFD shows the last effect (${v.multi.N} effects in total). Steam flow is for effect 1 and condenser load is the last effect’s vapour. See the effect-by-effect table in Test.`] : []),
       `Steam condenses at operating temperature + effective ΔT (${v.Ts.toFixed(0)} °C, ${v.Ps.toFixed(0)} kPa abs). Latent heat from the Watson correlation.`,
       'Cooling water is assumed at 30 → 40 °C. Values you type in the table are your own and are shown in italics.'
     ]
@@ -517,6 +521,7 @@ function pfdStreamRows(m = pfdModel()) {
     const calc = m.tpl.calc(s, m.env) || {}, u = user[s.id] || {}, row = { s, ph: calc.ph || '—', cells: {} };
     [['T', 1], ['P', 1], ['m', 1], ['w', 1]].forEach(([k, d]) => {
       let val = calc[k]; if (k === 'w' && Number.isFinite(val)) val *= 100;
+      if (k === 'm' && calc.util && Number.isFinite(val) && basis() === 'mole') val /= 18.015;
       row.cells[k] = Number.isFinite(val) ? { v: fmt(val, d), auto: true } : { v: u[k] ?? '', auto: false };
     });
     return row;
@@ -525,8 +530,8 @@ function pfdStreamRows(m = pfdModel()) {
 function renderStreamTable(editable = true, m = pfdModel()) {
   const rows = pfdStreamRows(m), name = id => { const n = m.byId[id]; return n.kind === 'terminal' ? n.label : n.tag; };
   const cell = (r, k) => r.cells[k].auto ? `<td class="num auto">${r.cells[k].v}</td>` : editable ? `<td class="num"><input class="stream-input" data-stream="${r.s.id}" data-key="${k}" inputmode="decimal" value="${esc(r.cells[k].v)}" aria-label="Stream ${r.s.no} ${k}" placeholder="enter"></td>` : `<td class="num user">${esc(r.cells[k].v) || '—'}</td>`;
-  const key = state.operation === 'evaporation' ? 'Solute' : 'Key comp.';
-  return `<div class="data-table-wrap"><table class="data-table stream-table"><thead><tr><th>NO.</th><th>STREAM</th><th>FROM → TO</th><th>PHASE</th><th>T (°C)</th><th>P (kPa abs)</th><th>FLOW (kg/h)</th><th>${key} (wt%)</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.s.cls}"><td><span class="stream-no ${r.s.cls}">${r.s.no}</span></td><td>${esc(r.s.desc)}</td><td class="muted">${esc(name(r.s.from))} → ${esc(name(r.s.to))}</td><td>${r.ph}</td>${cell(r, 'T')}${cell(r, 'P')}${cell(r, 'm')}${cell(r, 'w')}</tr>`).join('')}</tbody></table></div><ul class="stream-notes">${m.tpl.notes(m.env).map(t => `<li>${esc(t)}</li>`).join('')}<li>Bold values are calculated from your earlier stages; blank cells are yours to fill from your own calculations.</li></ul>`;
+  const key = state.operation === 'evaporation' ? 'Solute' : 'Key comp.', u = basisUnits();
+  return `<div class="data-table-wrap"><table class="data-table stream-table"><thead><tr><th>NO.</th><th>STREAM</th><th>FROM → TO</th><th>PHASE</th><th>T (°C)</th><th>P (kPa abs)</th><th>FLOW (${u.flow})</th><th>${key} (${u.pct})</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.s.cls}"><td><span class="stream-no ${r.s.cls}">${r.s.no}</span></td><td>${esc(r.s.desc)}</td><td class="muted">${esc(name(r.s.from))} → ${esc(name(r.s.to))}</td><td>${r.ph}</td>${cell(r, 'T')}${cell(r, 'P')}${cell(r, 'm')}${cell(r, 'w')}</tr>`).join('')}</tbody></table></div><ul class="stream-notes">${m.tpl.notes(m.env).map(t => `<li>${esc(t)}</li>`).join('')}<li>Flows are on your ${basis()} basis${basis() === 'mole' ? '; steam and cooling water are converted with M = 18.015 kg/kmol' : ''}. Bold values are calculated from your earlier stages; blank cells are yours to fill from your own calculations.</li></ul>`;
 }
 
 /* ---------- Consistency checks ---------- */
@@ -539,8 +544,8 @@ function pfdChecks(m = pfdModel()) {
     if (c.vacuum) {
       crit(a('condenser'), 'Vacuum service has a condenser', 'Under vacuum, the vapour must be condensed first so the vacuum system only handles non-condensable gas. Add condenser E-102.');
       crit(a('vacuum') && a('condenser'), 'Vacuum drawn from the condenser vent', `The vacuum is pulled from the condenser's non-condensable outlet, not the evaporator body. Add the ${vacName} on the condenser vent.`);
-      warn(v.Top < 100, 'Operating pressure is below atmospheric', `At ${v.Top.toFixed(0)} °C water boils at ${v.Pev.toFixed(0)} kPa abs, which is not below atmospheric pressure. Lower the operating temperature in Test or choose atmospheric operation.`);
-      if (a('condenser')) warn(v.Top >= 45, 'Condenser can reject heat to cooling water', `Vapour condenses at about ${v.Top.toFixed(0)} °C. Cooling water at 30 → 40 °C needs roughly a 5 K approach, so it cannot condense vapour this cold. Use chilled water or raise the operating temperature.`);
+      warn(v.Pev < 101.3, 'Operating pressure is below atmospheric', `The vapour is saturated at ${v.Tv.toFixed(0)} °C, which means ${v.Pev.toFixed(0)} kPa abs: not below atmospheric pressure. Lower the operating temperature in Test or choose atmospheric operation.`);
+      if (a('condenser')) warn(v.Tv >= 45, 'Condenser can reject heat to cooling water', `Vapour condenses at about ${v.Tv.toFixed(0)} °C. Cooling water at 30 → 40 °C needs roughly a 5 K approach, so it cannot condense vapour this cold. Use chilled water or raise the operating temperature.`);
       warn(a('productPump'), 'Concentrate can leave the vacuum vessel', 'Liquid will not drain by gravity from a vessel under vacuum. Add product pump P-102 or specify a barometric leg in your report.');
       if (a('condenser')) warn(a('condPump'), 'Condensate can leave the vacuum system', 'Condensate is also under vacuum. Add condensate pump P-103 or specify a barometric leg.');
     } else {
@@ -549,7 +554,7 @@ function pfdChecks(m = pfdModel()) {
     }
     if (c.eq === 'forced_circulation') crit(a('circPump'), 'Forced circulation has a circulation pump', 'A forced-circulation evaporator depends on circulation pump P-104 to keep tube velocity high and suppress boiling in the tubes.');
     warn(Number.isFinite(v.steam), 'Steam demand is calculated', 'Complete the thermal duty in Calculate so the steam flow can be filled in.');
-    if (c.mode === 'Multiple effect') warn(false, 'Multiple effect is drawn as one effect', 'The PFD shows the first effect. In your report, show vapour from effect n heating effect n + 1, with falling pressure along the train.');
+    if (c.mode === 'Multiple effect') warn(false, 'Multiple effect is drawn as one effect', 'The PFD shows the last effect of the train. In your report, draw every effect, with vapour from effect n heating effect n + 1 at falling pressure. Use the effect table in Test for the stream conditions.');
   }
   if (c.op === 'distillation') {
     crit(a('condenser'), 'Column has an overhead condenser', 'Without a condenser there is no liquid reflux. Add E-102.');

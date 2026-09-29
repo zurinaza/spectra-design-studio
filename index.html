@@ -20,6 +20,8 @@
       <div class="entrance-links">
         <button data-scroll="aboutModule">About module</button>
         <button id="entranceResources">References</button>
+        <label class="entrance-file">Open project file<input type="file" id="openFileEntrance" accept=".json"></label>
+        <button id="lecturerBtn">Lecturer tools</button>
       </div>
     </nav>
     <div class="entrance-hero">
@@ -61,6 +63,8 @@
     <div class="header-actions">
       <button class="ghost" id="homeBtn">← Entrance</button>
       <button class="ghost" id="resourcesBtn">Reference shelf</button>
+      <label class="ghost file-btn">Open file<input type="file" id="openFile" accept=".json"></label>
+      <button class="ghost" id="saveFileBtn">Save file</button>
       <button class="ghost" id="resetBtn">Reset project</button>
       <button class="primary small" id="portfolioBtn">View portfolio</button>
     </div>
@@ -122,7 +126,8 @@
     </div>
     <div id="portfolioContent"></div>
     <div class="dialog-actions">
-      <button class="ghost" id="downloadBtn">Download project data</button>
+      <button class="ghost" id="infographicBtn">One-page infographic</button>
+      <button class="ghost" id="downloadBtn">Save project file</button>
       <button class="primary" id="printBtn">Print / save as PDF</button>
     </div>
   </dialog>
@@ -177,6 +182,30 @@
     <div id="libraryContent" class="library-body"></div>
   </dialog>
 
+  <dialog id="infographicDialog" class="infographic-dialog">
+    <div class="dialog-head">
+      <div><div class="eyebrow">REPORT ITEM 1</div><h2>One-page infographic</h2></div>
+      <button class="icon-btn" data-close="infographicDialog" aria-label="Close">×</button>
+    </div>
+    <div id="infographicContent" class="ig-host"></div>
+    <div class="dialog-actions"><button class="primary" id="printInfographic">Print / save as PDF</button></div>
+  </dialog>
+
+  <dialog id="lecturerDialog" class="import-dialog">
+    <div class="dialog-head">
+      <div><div class="eyebrow">FOR LECTURERS</div><h2>Issue group briefs</h2></div>
+      <button class="icon-btn" data-close="lecturerDialog" aria-label="Close">×</button>
+    </div>
+    <p class="dialog-lead">Generate a different brief for each group. Each group pastes its code in the Scope stage, which fills in and locks its feed, targets and throughput.</p>
+    <div id="lecturerContent"></div>
+  </dialog>
+
+  <script src="course-tools.js"></script>
+  <script src="crosscheck.js"></script>
+  <script src="thermo.js"></script>
+  <script src="assignment.js"></script>
+  <script src="mechanical.js"></script>
+  <script src="infographic.js"></script>
   <script src="data-tools.js"></script>
   <script src="pfd.js"></script>
   <script src="app.js"></script>
