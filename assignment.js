@@ -16,7 +16,8 @@ async function fileToText(file) {
     const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise; let text = '';
     for (let p = 1; p <= Math.min(doc.numPages, 30); p++) {
       const content = await (await doc.getPage(p)).getTextContent(); let lastY = null;
-      content.items.forEach(it => { const y = it.transform[5]; if (lastY !== null && Math.abs(y - lastY) > 2) text += '\n'; else if (lastY !== null) text += ' '; text += it.str; lastY = y; });
+      let lastEnd = null;
+      content.items.forEach(it => { const y = it.transform[5], x = it.transform[4]; if (lastY !== null && Math.abs(y - lastY) > 2) text += '\n'; else if (lastY !== null) text += (lastEnd !== null && x - lastEnd > 14) ? '\n' : ' '; text += it.str; lastY = y; lastEnd = x + (it.width || 0); });
       text += '\n\n';
     }
     if (!text.replace(/\s/g, '')) throw new Error('This PDF has no text layer (it may be a scan). Copy the text in by hand or upload a Word version.');
@@ -180,8 +181,24 @@ function expandGroups(s) { const out = new Set(); s.split(/\s*(?:,|&|\band\b)\s*
 function parseGroups(raw) {
   const text = raw.replace(/\r/g, ''), groups = new Map(), segs = [];
   const re = new RegExp(`(?:^|\\n|\\|)\\s*((?:\\d{1,2}\\s*(?:,|&|and|–|-|to)\\s*)+\\d{1,2}|\\d{1,2})\\s*(?:\\||\\t|\\n)?\\s*${OP_RE.source}`, 'gi');
+  const opAt = idx => { let best = null; for (const mm of text.slice(0, idx).matchAll(new RegExp(OP_RE.source, 'gi'))) best = mm[1]; return best ? opOf(best) : null; };
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  let offset = 0; const lineAt = lines.map(l => { const i = text.indexOf(l, offset); offset = i + l.length; return i; });
+  for (let i = 0; i < lines.length; i++) {
+    const run = []; let j = i;
+    while (j < lines.length && /^(Group\s+\d{1,2}\s*)+$/i.test(lines[j])) { run.push(...[...lines[j].matchAll(/Group\s+(\d{1,2})/gi)].map(x => Number(x[1]))); j++; }
+    if (!run.length) continue;
+    const cases = lines.slice(j, j + run.length), op = opAt(lineAt[i]);
+    if (op && cases.length === run.length && cases.every(c => c.length >= 3 && c.length <= 90 && !/^(group|\d)/i.test(c))) run.forEach((n, k) => { if (n <= 40) groups.set(n, { n, op, caseName: cases[k], members: [], explicit: true }); });
+    i = j - 1;
+  }
+  // "Groups 1–3" next to an operation name (e.g. a cover or contents list)
+  for (const mm of text.matchAll(new RegExp(`${OP_RE.source}[^\n]*\n?[^\n]*?\n?[^\n]*?Groups?\s+(\d{1,2})\s*(?:[-–]|to)\s*(\d{1,2})`, 'gi'))) {
+    const op = opOf(mm[1]); for (let n = Number(mm[2]); n <= Number(mm[3]); n++) if (!groups.has(n)) groups.set(n, { n, op, caseName: '', members: [] });
+  }
   let m;
   while ((m = re.exec(text))) {
+    if (/(^|[,\s])0\d/.test(m[1])) continue;
     const nums = expandGroups(m[1]), op = opOf(m[2]); if (!op || !nums.length || nums.some(n => n > 40)) continue;
     const after = text.slice(m.index + m[0].length).split('\n').map(l => l.replace(/^\s*\|\s*|\s*\|\s*$/g, '').trim()).filter(Boolean);
     let caseName = '', members = [];
