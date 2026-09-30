@@ -173,6 +173,11 @@ const SWEEPS = {
     { id: 'extS', label: 'Extraction vs solvent ratio', x: 'Solvent / feed ratio', y: 'Extraction (%)', xs: [0.2, 0.4, 0.6, 0.8, 1, 1.5, 2, 3, 4], f: s => extractionModel({ ...currentSimValues(), phaseRatio: s }).extraction, cur: () => currentSimValues().phaseRatio, target: () => currentSimValues().targetExtraction },
     { id: 'extN', label: 'Extraction vs number of stages', x: 'Actual stages', y: 'Extraction (%)', xs: [1, 2, 3, 4, 5, 6, 8, 10], f: n => extractionModel({ ...currentSimValues(), stages: n }).extraction, cur: () => currentSimValues().stages, target: () => currentSimValues().targetExtraction }
   ],
+  drying: [
+    { id: 'tvT', label: 'Drying time vs air temperature', x: 'Air temperature entering the dryer (°C)', y: 'Total drying time (h)', xs: [40, 45, 50, 55, 60, 65, 70, 75, 80, 90, 100], f: T => { const d = dryingModel({ ...currentSimValues(), airInletTemp: T, exhaustTemp: Math.min(currentSimValues().exhaustTemp, T - 5) }); return d.error ? NaN : d.t; }, cur: () => currentSimValues().airInletTemp },
+    { id: 'GvT2', label: 'Air flow vs exhaust temperature', x: 'Exhaust air temperature (°C)', y: 'Dry-air flow (kg/h)', xs: [32, 35, 38, 40, 42, 45, 48, 50, 55, 60], f: T => { const v = currentSimValues(); if (T >= v.airInletTemp) return NaN; const d = dryingModel({ ...v, exhaustTemp: T }); return d.error || d.RH2 >= 1 ? NaN : d.Gdry; }, cur: () => currentSimValues().exhaustTemp },
+    { id: 'tvV', label: 'Drying time vs air velocity', x: 'Air velocity (m/s)', y: 'Total drying time (h)', xs: [1, 1.5, 2, 3, 4, 5, 6, 8, 10], f: u => { const d = dryingModel({ ...currentSimValues(), airVelocity: u }); return d.error ? NaN : d.t; }, cur: () => currentSimValues().airVelocity }
+  ],
   leaching: [
     { id: 'recS', label: 'Recovery vs solvent ratio', x: 'Solvent / dry-solid ratio', y: 'Recovery (%)', xs: [1, 1.5, 2, 3, 4, 5, 6, 8, 10], f: s => leachingModel({ ...currentSimValues(), solventRatio: s }).recovery, cur: () => currentSimValues().solventRatio, target: () => currentSimValues().targetRecovery },
     { id: 'recN', label: 'Recovery vs number of stages', x: 'Stages', y: 'Recovery (%)', xs: [1, 2, 3, 4, 5, 6, 8, 10], f: n => leachingModel({ ...currentSimValues(), stages: n }).recovery, cur: () => currentSimValues().stages, target: () => currentSimValues().targetRecovery }

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body>
   <section class="entrance" id="entrance">
@@ -63,6 +63,9 @@
     <div class="header-actions">
       <button class="ghost" id="homeBtn">← Entrance</button>
       <button class="ghost" id="resourcesBtn">Reference shelf</button>
+      <button class="ghost icon-ghost" id="undoBtn" disabled title="Undo (Ctrl+Z)" aria-label="Undo">↶ Undo</button>
+      <button class="ghost icon-ghost" id="redoBtn" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+      <button class="ghost" id="historyBtn">History</button>
       <label class="ghost file-btn">Open file<input type="file" id="openFile" accept=".json"></label>
       <button class="ghost" id="saveFileBtn">Save file</button>
       <button class="ghost" id="resetBtn">Reset project</button>
@@ -182,6 +185,15 @@
     <div id="libraryContent" class="library-body"></div>
   </dialog>
 
+  <dialog id="historyDialog" class="data-dialog">
+    <div class="dialog-head">
+      <div><div class="eyebrow">SAFE SAVING</div><h2>Version history</h2></div>
+      <button class="icon-btn" data-close="historyDialog" aria-label="Close">×</button>
+    </div>
+    <p class="dialog-lead">SPECTRA keeps a copy at every stage change, every five minutes of work and before opening a file, resetting or applying a brief. The newest 30 are kept in this browser.</p>
+    <div id="historyContent" class="library-body"></div>
+  </dialog>
+
   <dialog id="infographicDialog" class="infographic-dialog">
     <div class="dialog-head">
       <div><div class="eyebrow">REPORT ITEM 1</div><h2>One-page infographic</h2></div>
@@ -200,14 +212,19 @@
     <div id="lecturerContent"></div>
   </dialog>
 
-  <script src="course-tools.js"></script>
-  <script src="crosscheck.js"></script>
-  <script src="thermo.js"></script>
-  <script src="assignment.js"></script>
-  <script src="mechanical.js"></script>
-  <script src="infographic.js"></script>
-  <script src="data-tools.js"></script>
-  <script src="pfd.js"></script>
-  <script src="app.js"></script>
+  <script src="dom.js?v=13"></script>
+  <script src="persistence.js?v=13"></script>
+  <script src="course-tools.js?v=13"></script>
+  <script src="crosscheck.js?v=13"></script>
+  <script src="thermo.js?v=13"></script>
+  <script src="drying.js?v=13"></script>
+  <script src="assignment.js?v=13"></script>
+  <script src="mechanical.js?v=13"></script>
+  <script src="infographic.js?v=13"></script>
+  <script src="selftest.js?v=13"></script>
+  <script src="dashboard.js?v=13"></script>
+  <script src="data-tools.js?v=13"></script>
+  <script src="pfd.js?v=13"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

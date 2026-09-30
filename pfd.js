@@ -324,8 +324,12 @@ const PFD_TEMPLATES = {
         ...chain(has, ['unit', 'pconv', 'product'], 'p', { fpBy: { unit: spray ? 'bottom' : fb ? 'right@0.4' : 'right' }, laneBy: spray ? { unit: { y: 470 } } : {}, descBy: { unit: 'Dried product', pconv: 'Dried product' } })
       ];
     },
-    env() { const b = balance(); return { b: b?.valid ? b : null }; },
+    env() { const b = balance(), d = dryingModel(); return { b: b?.valid ? b : null, d: d.error ? null : d }; },
     calc(s, v) {
+      const d = v.d, air0 = d ? d.Gdry * (1 + d.H0) : undefined, air2 = d ? d.Gdry * (1 + d.H2) : undefined;
+      if (s.id === 'a_air' || s.id === 'a_fan') return { ph: 'G', T: d?.T0, P: 101.3, m: air0, w: 0 };
+      if (s.id === 'a_heater') return { ph: 'G', T: d?.T1, P: 101.3, m: air0, w: 0 };
+      if (s.id.startsWith('x_')) return { ph: 'G', T: d?.T2, P: 101.3, m: air2, w: 0 };
       if (s.id === 'f_feed' || s.id === 'f_feeder') return { ph: 'S', m: v.b ? state.F : undefined, w: state.z };
       if (s.id.startsWith('p_')) return { ph: 'S', m: v.b?.P, w: state.x };
       if (s.id.startsWith('a_') || s.id.startsWith('x_')) return { ph: 'G' };
@@ -334,7 +338,7 @@ const PFD_TEMPLATES = {
       if (s.id === 'stm' || s.id === 'motive') return { ph: 'V', w: 0 };
       return { ph: 'L' };
     },
-    notes: v => [`Wet feed and dried product flows come from your balance. Water evaporated (${v.b ? v.b.R.toFixed(1) : '—'} kg/h) leaves in the exhaust air or vapour line; calculate the air flow from a psychrometric balance.`]
+    notes: v => [`Wet feed and dried product flows come from your balance. Water evaporated (${v.b ? v.b.R.toFixed(1) : '—'} kg/h) leaves in the exhaust air.`, v.d ? `Air streams use the drying model in Test: ambient ${v.d.T0} °C and ${(v.d.H0 * 1000).toFixed(1)} g water/kg dry air, heated to ${v.d.T1} °C, leaving at ${v.d.T2} °C and ${(v.d.H2 * 1000).toFixed(1)} g/kg. Air flows include the water vapour they carry.` : 'Run the drying model in Test to fill the air streams.']
   },
 
   leaching: {

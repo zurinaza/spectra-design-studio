@@ -122,8 +122,7 @@ const IMPORT_COLUMNS = [
 ];
 let importRows = [];
 function loadSheetJS() {
-  if (window.XLSX) return Promise.resolve(window.XLSX);
-  return new Promise((resolve, reject) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = () => resolve(window.XLSX); s.onerror = () => reject(new Error('Excel library could not load')); document.head.appendChild(s); });
+  return loadLib('vendor/xlsx.full.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js', 'XLSX');
 }
 function templateRows() {
   const items = checklistFor();
@@ -274,8 +273,5 @@ function bindDataTools() {
   document.getElementById('tplCsv').onclick = () => downloadTemplate('csv');
   document.getElementById('importFile').onchange = e => readImportFile(e.target.files[0]);
   document.getElementById('importPasteBtn').onclick = readPaste;
-  const drop = document.getElementById('importDrop');
-  ['dragover', 'dragenter'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
-  ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
-  drop.addEventListener('drop', e => readImportFile(e.dataTransfer.files[0]));
+  bindDropZone(document.getElementById('importDrop'), e => readImportFile(e.dataTransfer.files[0]));
 }

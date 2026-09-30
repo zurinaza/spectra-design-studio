@@ -8,11 +8,18 @@ const LIBS = {
   pdfWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
   mammoth: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js'
 };
+/* Load a library from the site's own vendor folder first, then from the CDN. */
+window.__libSource = window.__libSource || {};
+function loadLib(local, cdn, globalName) {
+  if (window[globalName]) return Promise.resolve(window[globalName]);
+  const inject = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => window[globalName] ? res(window[globalName]) : rej(new Error('library did not initialise')); s.onerror = () => { s.remove(); rej(new Error(`Could not load ${src}`)); }; document.head.appendChild(s); });
+  return inject(local).then(lib => { window.__libSource[globalName] = 'local'; return lib; }, () => inject(cdn).then(lib => { window.__libSource[globalName] = 'cdn'; return lib; }));
+}
 function loadScript(src, globalName) { if (window[globalName]) return Promise.resolve(window[globalName]); return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => res(window[globalName]); s.onerror = () => rej(new Error(`Could not load ${src}`)); document.head.appendChild(s); }); }
 async function fileToText(file) {
   const name = file.name.toLowerCase();
   if (name.endsWith('.pdf')) {
-    const pdfjs = await loadScript(LIBS.pdf, 'pdfjsLib'); pdfjs.GlobalWorkerOptions.workerSrc = LIBS.pdfWorker;
+    const pdfjs = await loadLib('vendor/pdf.min.js', LIBS.pdf, 'pdfjsLib'); pdfjs.GlobalWorkerOptions.workerSrc = window.__libSource.pdfjsLib === 'local' ? 'vendor/pdf.worker.min.js' : LIBS.pdfWorker;
     const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise; let text = '';
     for (let p = 1; p <= Math.min(doc.numPages, 30); p++) {
       const content = await (await doc.getPage(p)).getTextContent(); let lastY = null;
@@ -23,7 +30,7 @@ async function fileToText(file) {
     if (!text.replace(/\s/g, '')) throw new Error('This PDF has no text layer (it may be a scan). Copy the text in by hand or upload a Word version.');
     return text;
   }
-  if (name.endsWith('.docx')) { const mammoth = await loadScript(LIBS.mammoth, 'mammoth'); return (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value; }
+  if (name.endsWith('.docx')) { const mammoth = await loadLib('vendor/mammoth.browser.min.js', LIBS.mammoth, 'mammoth'); return (await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() })).value; }
   if (name.endsWith('.doc')) throw new Error('Old .doc files cannot be read in the browser. Save it as .docx or PDF and try again.');
   return file.text();
 }
@@ -143,10 +150,7 @@ function bindAssignment() {
   document.getElementById('assignRead').onclick = run;
   document.getElementById('assignFile').onchange = run;
   document.getElementById('assignVar').onchange = e => { if (lastAssignment) applyAssignment(e.target.value); };
-  const drop = document.getElementById('assignDrop');
-  ['dragover', 'dragenter'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
-  ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
-  drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (!f) return; const dt = new DataTransfer(); dt.items.add(f); document.getElementById('assignFile').files = dt.files; run(); });
+  bindDropZone(document.getElementById('assignDrop'), e => { const f = e.dataTransfer.files[0]; if (!f) return; const dt = new DataTransfer(); dt.items.add(f); document.getElementById('assignFile').files = dt.files; run(); });
 }
 
 /* ================= Multi-group sheets ================= */
